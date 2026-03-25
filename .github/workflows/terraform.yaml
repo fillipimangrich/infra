@@ -4,16 +4,9 @@ on:
   push:
     branches:
       - main
-  workflow_dispatch:
-    inputs:
-      action:
-        description: 'Action to run'
-        required: true
-        default: 'plan'
-        type: choice
-        options:
-          - plan
-          - apply
+  pull_request:
+    branches:
+      - main
 
 env:
   TF_WORKING_DIR: environments/management
@@ -42,19 +35,14 @@ jobs:
         run: terraform fmt -check -recursive
 
       - name: Terraform Plan
-        run: terraform plan -out=tfplan
-
-      - name: Upload Plan
-        uses: actions/upload-artifact@v4
-        with:
-          name: tfplan
-          path: ${{ env.TF_WORKING_DIR }}/tfplan
+        run: terraform plan
 
   apply:
     name: Terraform Apply
     runs-on: ubuntu-latest
     needs: plan
-    if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'apply'
+    environment: production
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     defaults:
       run:
         working-directory: ${{ env.TF_WORKING_DIR }}
@@ -71,11 +59,5 @@ jobs:
       - name: Terraform Init
         run: terraform init
 
-      - name: Download Plan
-        uses: actions/download-artifact@v4
-        with:
-          name: tfplan
-          path: ${{ env.TF_WORKING_DIR }}
-
       - name: Terraform Apply
-        run: terraform apply -auto-approve tfplan
+        run: terraform apply -auto-approve
