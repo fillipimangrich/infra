@@ -25,3 +25,9 @@ variable "ssh_key_names" {
   type        = list(string)
   default     = []
 }
+
+variable "ssh_private_key" {
+  description = "Chave privada SSH para provisionar a VM via remote-exec"
+  type        = string
+  sensitive   = true
+}

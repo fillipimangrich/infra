@@ -4,3 +4,10 @@ variable "hcloud_token" {
   sensitive   = true
   default     = ""
 }
+
+variable "ssh_private_key" {
+  description = "Chave privada SSH para provisionar VMs"
+  type        = string
+  sensitive   = true
+  default     = ""
+}

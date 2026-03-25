@@ -11,6 +11,7 @@ on:
 env:
   TF_WORKING_DIR: environments/management
   TF_VAR_hcloud_token: ${{ secrets.HCLOUD_TOKEN }}
+  TF_VAR_ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
 
 jobs:
   plan:
