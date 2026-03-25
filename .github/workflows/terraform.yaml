@@ -10,6 +10,7 @@ on:
 
 env:
   TF_WORKING_DIR: environments/management
+  TF_VAR_hcloud_token: ${{ secrets.HCLOUD_TOKEN }}
 
 jobs:
   plan:
