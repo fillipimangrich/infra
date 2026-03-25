@@ -21,13 +21,12 @@ provider "hcloud" {
   token = var.hcloud_token != "" ? var.hcloud_token : null
 }
 
-resource "hcloud_server" "management" {
-  name        = "ubuntu-4gb-nbg1-1"
-  server_type = "cx23"
-  image       = "ubuntu-24.04"
-  location    = "nbg1"
+module "management" {
+  source = "../../modules/k3s-cluster"
 
-  labels = {
-    role = "management"
-  }
+  name          = "ubuntu-4gb-nbg1-1"
+  server_type   = "cx23"
+  location      = "nbg1"
+  role          = "management"
+  ssh_key_names = ["costa.mangrich@gmail.com", "fllp"]
 }
