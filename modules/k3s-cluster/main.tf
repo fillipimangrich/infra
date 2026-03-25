@@ -4,6 +4,14 @@ terraform {
       source  = "hetznercloud/hcloud"
       version = "~> 1.49"
     }
+    null = {
+      source  = "hashicorp/null"
+      version = "~> 3.0"
+    }
+    external = {
+      source  = "hashicorp/external"
+      version = "~> 2.0"
+    }
   }
 }
 
@@ -43,6 +51,30 @@ resource "null_resource" "k3s_install" {
       "curl -sfL https://get.k3s.io | sh -",
       "systemctl enable k3s",
       "systemctl start k3s",
+      "until kubectl get nodes 2>/dev/null | grep -q Ready; do sleep 2; done",
     ]
   }
+}
+
+resource "null_resource" "write_ssh_key" {
+  triggers = {
+    server_id = hcloud_server.this.id
+  }
+
+  provisioner "local-exec" {
+    command = <<-EOT
+      echo '${var.ssh_private_key}' > /tmp/k3s_key
+      chmod 600 /tmp/k3s_key
+    EOT
+  }
+}
+
+data "external" "kubeconfig" {
+  depends_on = [null_resource.k3s_install, null_resource.write_ssh_key]
+
+  program = ["bash", "-c", <<-EOT
+    CONTENT=$(ssh -o StrictHostKeyChecking=no -i /tmp/k3s_key root@${hcloud_server.this.ipv4_address} "cat /etc/rancher/k3s/k3s.yaml")
+    echo "{\"content\": $(echo "$CONTENT" | jq -Rs .)}"
+  EOT
+  ]
 }

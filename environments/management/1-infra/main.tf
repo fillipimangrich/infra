@@ -3,7 +3,7 @@ terraform {
     organization = "Mangrich"
 
     workspaces {
-      name = "kube-test"
+      name = "management-infra"
     }
   }
 
@@ -26,7 +26,7 @@ provider "hcloud" {
 }
 
 module "management" {
-  source = "../../modules/k3s-cluster"
+  source = "../../../modules/k3s-cluster"
 
   name            = "ubuntu-4gb-nbg1-1"
   server_type     = "cx23"
