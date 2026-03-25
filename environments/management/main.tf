@@ -18,5 +18,16 @@ terraform {
 }
 
 provider "hcloud" {
-  token = var.hcloud_token
+  token = var.hcloud_token != "" ? var.hcloud_token : null
+}
+
+resource "hcloud_server" "management" {
+  name        = "ubuntu-4gb-nbg1-1"
+  server_type = "cx23"
+  image       = "ubuntu-24.04"
+  location    = "nbg1"
+
+  labels = {
+    role = "management"
+  }
 }
