@@ -3,11 +3,19 @@ terraform {
     organization = "Mangrich"
 
     workspaces {
-      name = "management-apps"
+      name = "management"
     }
   }
 
   required_providers {
+    hcloud = {
+      source  = "hetznercloud/hcloud"
+      version = "~> 1.49"
+    }
+    null = {
+      source  = "hashicorp/null"
+      version = "~> 3.0"
+    }
     helm = {
       source  = "hashicorp/helm"
       version = "~> 2.0"
@@ -17,19 +25,10 @@ terraform {
   required_version = ">= 1.9"
 }
 
-data "terraform_remote_state" "infra" {
-  backend = "remote"
+# --- Providers ---
 
-  config = {
-    organization = "Mangrich"
-    workspaces = {
-      name = "management-infra"
-    }
-  }
-}
-
-locals {
-  kubeconfig = yamldecode(data.terraform_remote_state.infra.outputs.kubeconfig)
+provider "hcloud" {
+  token = var.hcloud_token != "" ? var.hcloud_token : null
 }
 
 provider "helm" {
@@ -40,6 +39,25 @@ provider "helm" {
     client_key             = base64decode(local.kubeconfig.users[0].user["client-key-data"])
   }
 }
+
+# --- Cluster k3s ---
+
+module "management" {
+  source = "../../modules/k3s-cluster"
+
+  name            = "ubuntu-4gb-nbg1-1"
+  server_type     = "cx23"
+  location        = "nbg1"
+  role            = "management"
+  ssh_key_names   = ["costa.mangrich@gmail.com", "fllp"]
+  ssh_private_key = var.ssh_private_key
+}
+
+locals {
+  kubeconfig = yamldecode(module.management.kubeconfig)
+}
+
+# --- Platform apps (Helm) ---
 
 resource "helm_release" "argocd" {
   name             = "argocd"
@@ -58,4 +76,6 @@ resource "helm_release" "argocd" {
         server.insecure: true
   YAML
   ]
+
+  depends_on = [module.management]
 }

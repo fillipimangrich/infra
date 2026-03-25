@@ -13,12 +13,12 @@ env:
   TF_VAR_ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
 
 jobs:
-  plan-infra:
-    name: Plan — 1-infra
+  plan:
+    name: Plan — management
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: environments/management/1-infra
+        working-directory: environments/management
 
     steps:
       - name: Checkout
@@ -38,66 +38,15 @@ jobs:
       - name: Terraform Plan
         run: terraform plan
 
-  apply-infra:
-    name: Apply — 1-infra
+  apply:
+    name: Apply — management
     runs-on: ubuntu-latest
-    needs: plan-infra
+    needs: plan
     environment: production
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     defaults:
       run:
-        working-directory: environments/management/1-infra
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4.2.2
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3.1.2
-        with:
-          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
-
-      - name: Terraform Init
-        run: terraform init
-
-      - name: Terraform Apply
-        run: terraform apply -auto-approve
-
-  plan-apps:
-    name: Plan — 2-apps
-    runs-on: ubuntu-latest
-    needs: apply-infra
-    defaults:
-      run:
-        working-directory: environments/management/2-apps
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4.2.2
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3.1.2
-        with:
-          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
-
-      - name: Terraform Init
-        run: terraform init
-
-      - name: Terraform Format Check
-        run: terraform fmt -check -recursive
-
-      - name: Terraform Plan
-        run: terraform plan
-
-  apply-apps:
-    name: Apply — 2-apps
-    runs-on: ubuntu-latest
-    needs: plan-apps
-    environment: production
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    defaults:
-      run:
-        working-directory: environments/management/2-apps
+        working-directory: environments/management
 
     steps:
       - name: Checkout
