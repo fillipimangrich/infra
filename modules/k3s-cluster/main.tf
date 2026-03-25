@@ -17,4 +17,8 @@ resource "hcloud_server" "this" {
   labels = {
     role = var.role
   }
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
