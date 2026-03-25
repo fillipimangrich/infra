@@ -58,7 +58,7 @@ resource "null_resource" "k3s_install" {
 
 resource "null_resource" "write_ssh_key" {
   triggers = {
-    server_id = hcloud_server.this.id
+    always_run = uuid()
   }
 
   provisioner "local-exec" {
