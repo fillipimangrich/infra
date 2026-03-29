@@ -27,7 +27,7 @@ resource "hcloud_server" "this" {
   }
 
   lifecycle {
-    prevent_destroy = true
+    prevent_destroy = false
   }
 }
 
