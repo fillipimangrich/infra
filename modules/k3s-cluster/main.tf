@@ -56,22 +56,9 @@ resource "null_resource" "k3s_install" {
   }
 }
 
-resource "null_resource" "write_ssh_key" {
-  triggers = {
-    always_run = uuid()
-  }
-
-  provisioner "local-exec" {
-    command = <<-EOT
-      echo '${var.ssh_private_key}' > /tmp/k3s_key
-      chmod 600 /tmp/k3s_key
-    EOT
-  }
-}
-
 data "external" "kubeconfig" {
-  depends_on = [null_resource.k3s_install, null_resource.write_ssh_key]
-
+  depends_on = [null_resource.k3s_install]
+  
   program = ["bash", "-c", <<-EOT
     CONTENT=$(ssh -o StrictHostKeyChecking=no -i /tmp/k3s_key root@${hcloud_server.this.ipv4_address} "cat /etc/rancher/k3s/k3s.yaml")
     echo "{\"content\": $(echo "$CONTENT" | jq -Rs .)}"
